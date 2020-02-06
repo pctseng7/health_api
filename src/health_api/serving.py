@@ -80,4 +80,13 @@ class Server(object):
         app.add_url_rule('/ping', 'healthcheck', self._healthcheck)
         app.add_url_rule('/download', 'download', self._download, methods=["GET"])
         app.register_error_handler(Exception, self._default_error_handler)
-        return 
+        return app
+
+    def _healthcheck(self):
+        return ''
+
+    def _download(self):
+        return ''
+
+    def _default_error_handler(self, exception):
+        return ''
