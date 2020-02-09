@@ -24,7 +24,6 @@ class Server(object):
 
     @classmethod
     def from_env(cls):
-        health_api.configure_logging()
         logger.info("creating Server instance")
         env = health_api.HostEnvironment()
 
@@ -32,12 +31,9 @@ class Server(object):
         logger.info("returning initialized server")
         return server
 
-    @classmethod
-    def start(cls):
-        """Configure the Gunicorn web server 
+    def start(env):
+        """Configure and launch the Gunicorn web server 
         """
-
-        env = health_api.HostEnvironment()
         
         if env.health_ssl_enabled:
             gunicorn_bind_address = '0.0.0.0:443'

@@ -1,4 +1,5 @@
-from health_api.serving import Server
+import health_api
 
 if __name__ == "__main__":
-    Server.start()
+    env = health_api.HostEnvironment()
+    health_api.serving.Server.start()
