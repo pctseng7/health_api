@@ -1,6 +1,7 @@
 import logging
 import os
 import signal
+import sys
 import subprocess
 from flask import Flask
 import health_api 
@@ -23,7 +24,6 @@ class Server(object):
 
     @classmethod
     def from_env(cls):
-        health_api.configure_logging()
         logger.info("creating Server instance")
         env = health_api.HostEnvironment()
 
@@ -31,14 +31,14 @@ class Server(object):
         logger.info("returning initialized server")
         return server
 
-    @classmethod
-    def start(cls):
-        """Prepare the container for model serving, configure and launch the model server stack.
+    def start(env):
+        """Configure and launch the Gunicorn web server 
         """
-
-        env = health_api.HostEnvironment()
-
-        gunicorn_bind_address = '0.0.0.0:{}'.format(env.http_port)
+        
+        if env.health_ssl_enabled:
+            gunicorn_bind_address = '0.0.0.0:443'
+        else:
+            gunicorn_bind_address = '0.0.0.0:80'
         
         # if env.use_nginx:
         #     logger.info("starting nginx")
@@ -54,22 +54,10 @@ class Server(object):
                                          "-k", "gevent",
                                          "-b", gunicorn_bind_address,
                                          "--worker-connections", str(1000 * env.server_worker_num),
-                                         "-w", str(env.model_server_workers),
-                                         "container_support.wsgi:app"]).pid
+                                         "-w", str(env.server_worker_num),
+                                         "health_api.wsgi:app"]).pid
 
-        signal.signal(signal.SIGTERM, lambda a, b: Server._sigterm_handler(nginx_pid, gunicorn_pid))
-
-        # children = set([nginx_pid, gunicorn_pid]) if nginx_pid else gunicorn_pid
-        children = gunicorn_pid
-        logger.info("inference server started. waiting on processes: %s" % children)
-
-        while True:
-            pid, _ = os.wait()
-            if pid in children:
-                break
-
-        Server._sigterm_handler(gunicorn_pid)
-
+        signal.signal(gunicorn_pid)
 
     def _build_flask_app(self, name):
         """ Construct the Flask app that will handle requests.
