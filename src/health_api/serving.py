@@ -34,7 +34,7 @@ class Server(object):
 
     @classmethod
     def start(cls):
-        """Configure gunicorn web server 
+        """Configure the Gunicorn web server 
         """
 
         env = health_api.HostEnvironment()
