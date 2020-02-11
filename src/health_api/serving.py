@@ -3,6 +3,8 @@ import os
 import signal
 import sys
 import subprocess
+import boto3
+import botocore
 from flask import Flask
 import health_api 
 
@@ -59,6 +61,7 @@ class Server(object):
 
         signal.signal(gunicorn_pid)
 
+
     def _build_flask_app(self, name):
         """ Construct the Flask app that will handle requests.
         :param name: the name of the service
@@ -70,11 +73,23 @@ class Server(object):
         app.register_error_handler(Exception, self._default_error_handler)
         return app
 
+
     def _healthcheck(self):
         return ''
 
-    def _download(self):
-        return ''
+
+    def _download(self, bucket_name, key_name, file_name):
+        """Download txt files from AWS S3 
+        """        
+        s3 = boto3.client('s3')
+        try:
+            s3.download_file(bucket_name, key_name, file_name)
+        except botocore.exceptions.ClientError as e:
+            if e.response['Error']['Code'] == "404":
+                print("The object does not exist.")
+            else:
+                raise
+
 
     def _default_error_handler(self, exception):
         return ''
