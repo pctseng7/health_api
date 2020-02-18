@@ -1,4 +1,5 @@
 import os
+import logging
 
 class HostEnvironment(object):
     """Provides access to common aspects of the container environment, including
@@ -12,6 +13,7 @@ class HostEnvironment(object):
     HEALTH_SSL_AUTH_ENABLED = "HEALTH_SSL_AUTH_ENABLED"
     GUNICORN_SERVER_WORKER_TIMEOUT = "GUNICORN_SERVER_WORKER_TIMEOUT"
     GUNICORN_SERVER_WORKER_NUM = "GUNICORN_SERVER_WORKER_NUM"
+    LOG_LEVEL = "LOG_LEVEL"
 
     def __init__(self):
         
@@ -29,3 +31,23 @@ class HostEnvironment(object):
 
         # Define web server worker number(s)
         self.server_worker_num = os.environ.get("GUNICORN_SERVER_WORKER_NUM", 1)
+
+        # Set the log level
+        self.log_level = os.environ.get("LOG_LEVEL", 20)
+
+
+def configure_logging():
+    
+    env = HostEnvironment()
+
+    if env.log_level == 10:
+        default_level = logging.DEBUG
+    elif env.log_level == 20:
+        default_level = logging.INFO
+    elif env.log_level == 30:
+        default_level = logging.WARN
+    else:
+        default_level = logging.ERROR
+
+    logging.basicConfig(format=format, level=default_level)
+    logging.getLogger("download").setLevel(default_level)
